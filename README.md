@@ -20,8 +20,10 @@ Speech-to-Text-to-Speech
 * Bad example
 ![](https://github.com/Joovvhan/S3TS/blob/main/png/bad.png)
 
-* Outliers (Jamos=X, Seconds=Y)
-![](https://github.com/Joovvhan/S3TS/blob/main/png/jamo_and_time.png)
+* 4 criteria limits (Jamos=X, Seconds=Y)
+![](https://github.com/Joovvhan/S3TS/blob/main/png/quad_limits.png)
+
+
 
 ## TO-DO
 * Split audio files into segments according to Whisper output convention [v]

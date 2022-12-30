@@ -4,8 +4,11 @@ from glob import glob
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse
+from matplotlib.patches import Polygon
 
 from datetime import datetime
+
+from tqdm.auto import tqdm
 
 import jamotools
 
@@ -38,48 +41,112 @@ if __name__ == "__main__":
     segment_dir = './audio_segments'
     srt_files = sorted(glob(f'{transcription_dir}/*.srt'))
 
-    for srt_file in srt_files:
+    total_durations = list()
+    total_jamos = list()
+
+    for srt_file in tqdm(srt_files):
         index, texts, times = read_srt_file(srt_file)
         
         durations = [get_delta_float(s, e) for s, e in times]
         jamos = [len(jamotools.split_syllables(text)) for text in texts]
 
-        # plt.figure()
-        # plt.hist(durations, bins=range(0, int(max(durations))), width=0.8)
-        # plt.show()
-        
-        # plt.figure()
-        # plt.scatter(jamos, durations, alpha=0.2)
-        # plt.show()
+        filtered = [(dur, jamo) for (dur, jamo) in zip(durations, jamos) if dur < 80000 and dur > 0]
+        durations = [dur for (dur, jamo) in filtered]
+        jamos = [jamo for (dur, jamo) in filtered]
 
-        fig = plt.figure(figsize=(6, 6))
-        gs = fig.add_gridspec(2, 2,  width_ratios=(4, 1), height_ratios=(1, 4),
-                            left=0.15, right=0.90, bottom=0.10, top=0.90,
-                            wspace=0.05, hspace=0.05)
+        total_durations.extend(durations)
+        total_jamos.extend(jamos)
 
-        ax = fig.add_subplot(gs[1, 0])
-        ax_histx = fig.add_subplot(gs[0, 0], sharex=ax)
-        ax_histy = fig.add_subplot(gs[1, 1], sharey=ax)
+    print(len(total_durations))
 
-        ax_histx.tick_params(axis="x", labelbottom=False)
-        ax_histy.tick_params(axis="y", labelleft=False)
+    total_r = [jamo / dur for (jamo, dur) in zip(total_jamos, total_durations)]
 
-        # the scatter plot:
-        ax.scatter(jamos, durations, alpha=0.3)
-        ax.plot([np.median(jamos)], [np.median(durations)], color='r', marker='*')
+    fig, axes = plt.subplots(2, 1, sharex=True, figsize=(12, 6))
+    axes[0].hist(total_r, bins=100, rwidth=0.9)
+    axes[1].hist(total_r, bins=100, rwidth=0.9)
+    axes[1].set_yscale("log")
+    plt.show()
 
-        deg = np.rad2deg(np.arctan2(np.median(durations), np.median(jamos)))
-        print(np.median(jamos), np.median(durations), deg)
+    upper_percentage = 0.99
+    lower_percentage = 0.15
 
-        ells = Ellipse((np.median(jamos), np.median(durations)), 60, 10, deg * 0.75, color='r', alpha=0.2)
-        ax.add_artist(ells)
-        # ax.set_xlim((0, max(jamos)))
-        # ax.set_ylim((0, max(jamos)))
+    total_r = [r for r in total_r if r < 30]
+    fig, axes = plt.subplots(2, 1, sharex=True, figsize=(12, 6))
+    axes[0].hist(total_r, bins=300, rwidth=0.9)
+    n, bins, patches = axes[1].hist(total_r, bins=300, rwidth=0.9, cumulative=True, density=True)
+    axes[1].axhline(upper_percentage, color='r')
+    axes[1].axhline(lower_percentage, color='r')
+    
+    for i in range(len(n) - 1):
+        if n[i+1] >= lower_percentage and n[i] < lower_percentage:
+            # print(n[i+1], bins[i+1], n[i], bins[i])
+            r_low = np.mean([bins[i+1], bins[i]])
+        if n[i+1] >= upper_percentage and n[i] < upper_percentage:
+            # print(n[i+1], bins[i+1], n[i], bins[i])
+            r_high = np.mean([bins[i+1], bins[i]])
+    
+    plt.show()
 
-        ax_histx.hist(jamos, bins=30, rwidth=0.9)
-        ax_histy.hist(durations, bins=30, rwidth=0.9, orientation='horizontal')
+    fig = plt.figure(figsize=(9, 9))
+    gs = fig.add_gridspec(2, 2,  width_ratios=(4, 1), height_ratios=(1, 4),
+                        left=0.15, right=0.90, bottom=0.10, top=0.90,
+                        wspace=0.05, hspace=0.05)
 
-        plt.show()
+    ax = fig.add_subplot(gs[1, 0])
+    ax_histx = fig.add_subplot(gs[0, 0], sharex=ax)
+    ax_histy = fig.add_subplot(gs[1, 1], sharey=ax)
+
+    ax_histx.tick_params(axis="x", labelbottom=False)
+    ax_histy.tick_params(axis="y", labelleft=False)
+
+    # the scatter plot:
+    ax.scatter(total_jamos, total_durations, alpha=0.05, s=4)
+    x_max, y_max = max(total_jamos), max(total_durations)
+    ax.plot([0, x_max], [0, x_max / r_high], color='r')
+    ax.plot([0, y_max * r_low], [0, y_max], color='r')
+    ax.plot([np.median(total_jamos)], [np.median(total_durations)], color='r', marker='*')
+
+    # deg = np.rad2deg(np.arctan2(np.median(total_durations), np.median(total_jamos)))
+    # print(np.median(total_jamos), np.median(total_durations), deg)
+
+    # ells = Ellipse((np.median(total_jamos), np.median(total_durations)), 60, 10, deg * 0.75, color='r', alpha=0.2)
+    # ax.add_artist(ells)
+    # ax.set_xlim((0, max(jamos)))
+    # ax.set_ylim((0, max(jamos)))
+
+    upper_percentage = 0.99
+
+    # ax_histx.hist(total_jamos, bins=100, rwidth=0.8)
+    n, bins, patches = ax_histx.hist(total_jamos, bins=100, rwidth=0.8, cumulative=True, density=True)
+    ax_histx.axhline(upper_percentage, color='r')
+    
+    for i in range(len(n) - 1):
+        if n[i+1] >= upper_percentage and n[i] < upper_percentage:
+            # print(n[i+1], bins[i+1], n[i], bins[i])
+            jamo_high = np.mean([bins[i+1], bins[i]])
+    
+    ax.axvline(jamo_high, color='r')
+
+    upper_percentage = 0.90
+
+    # ax_histy.hist(total_durations, bins=100, rwidth=0.8, orientation='horizontal')
+    n, bins, patches = ax_histy.hist(total_durations, bins=100, rwidth=0.8, orientation='horizontal', cumulative=True, density=True)
+    ax_histy.axvline(upper_percentage, color='r')
+
+    for i in range(len(n) - 1):
+        if n[i+1] >= upper_percentage and n[i] < upper_percentage:
+            # print(n[i+1], bins[i+1], n[i], bins[i])
+            dur_high = np.mean([bins[i+1], bins[i]])
+    
+    ax.axhline(dur_high, color='r')    
+
+    ax.set_xlim([0, max(total_jamos)])
+    ax.set_ylim([0, max(total_durations)])
+
+    p = Polygon([[0,0], [jamo_high, jamo_high/r_high], [jamo_high, dur_high], [dur_high*r_low, dur_high]], facecolor='r', alpha=0.2)
+    ax.add_patch(p)
+
+    plt.show()
         
 
     # return
