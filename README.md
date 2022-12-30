@@ -14,8 +14,14 @@ Speech-to-Text-to-Speech
 ## Known Issues
 * Whisper somtimes fails in cutting off silences
 
+* Good example
+![](https://github.com/Joovvhan/S3TS/blob/main/png/good.png)
 
+* Bad example
+![](https://github.com/Joovvhan/S3TS/blob/main/png/bad.png)
 
+* Outliers (Jamos=X, Seconds=Y)
+![](https://github.com/Joovvhan/S3TS/blob/main/png/jamo_and_time.png)
 
 ## TO-DO
 * Split audio files into segments according to Whisper output convention [v]
