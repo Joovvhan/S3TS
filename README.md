@@ -2,7 +2,7 @@
 Speech-to-Text-to-Speech
 
 # File Format Information
-* webm (44.1kHz/40kHz) [v]
+* webm (44.1kHz/40kHz) [x]
 * m4a (44.1kHz/32kHz)
 
 ## Related Repositories
@@ -26,7 +26,7 @@ Speech-to-Text-to-Speech
 
 
 ## TO-DO
-* Split audio files into segments according to Whisper output convention [v]
+* Split audio files into segments according to Whisper output convention [x]
 * Filter out inappropriate samples with simple rules
 * Store enough samples and visualize statistics 
   

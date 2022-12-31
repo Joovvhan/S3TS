@@ -57,15 +57,21 @@ if __name__ == "__main__":
         total_durations.extend(durations)
         total_jamos.extend(jamos)
 
-    print(len(total_durations))
+    print(f'Total valid files: {len(total_durations)}')
+    print(f'Total valid seconds: {sum(total_durations)}')
+    print(f'Total valid jamos: {sum(total_jamos)}')
+
+    # Total valid files: 77369
+    # Total valid seconds: 456998.5200000008
+    # Total valid jamos: 2933095
 
     total_r = [jamo / dur for (jamo, dur) in zip(total_jamos, total_durations)]
 
-    fig, axes = plt.subplots(2, 1, sharex=True, figsize=(12, 6))
-    axes[0].hist(total_r, bins=100, rwidth=0.9)
-    axes[1].hist(total_r, bins=100, rwidth=0.9)
-    axes[1].set_yscale("log")
-    plt.show()
+    # fig, axes = plt.subplots(2, 1, sharex=True, figsize=(12, 6))
+    # axes[0].hist(total_r, bins=100, rwidth=0.9)
+    # axes[1].hist(total_r, bins=100, rwidth=0.9)
+    # axes[1].set_yscale("log")
+    # plt.show()
 
     upper_percentage = 0.99
     lower_percentage = 0.15
@@ -149,4 +155,38 @@ if __name__ == "__main__":
     plt.show()
         
 
-    # return
+    print(f'{jamo_high} / {dur_high} / {r_high} / {r_low}')
+    # 138.7000000000000 / 11.8347000 / 20.91667 / 2.867143
+
+    total_durations = list()
+    total_jamos = list()
+
+    def length_filtered(dur, jamo):
+
+        dur_pass = dur < dur_high and dur > 0 
+        jamo_pass = jamo < jamo_high and jamo > 0
+        r = jamo / dur
+        r_pass = r < r_high and r > r_low
+
+        return  dur_pass and jamo_pass and r_pass
+
+    for srt_file in tqdm(srt_files):
+        index, texts, times = read_srt_file(srt_file)
+        
+        durations = [get_delta_float(s, e) for s, e in times]
+        jamos = [len(jamotools.split_syllables(text)) for text in texts]
+
+        filtered = [(dur, jamo) for (dur, jamo) in zip(durations, jamos) if length_filtered(dur, jamo)]
+        durations = [dur for (dur, jamo) in filtered]
+        jamos = [jamo for (dur, jamo) in filtered]
+
+        total_durations.extend(durations)
+        total_jamos.extend(jamos)
+
+    print(f'Total filtered files: {len(total_durations)}')
+    print(f'Total filtered seconds: {sum(total_durations)}')
+    print(f'Total filtered jamos: {sum(total_jamos)}')
+
+    # Total filtered files: 60726
+    # Total filtered seconds: 263847.75999999954
+    # Total filtered jamos: 2285993
