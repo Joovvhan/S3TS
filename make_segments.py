@@ -29,6 +29,8 @@ if __name__ == "__main__":
     segment_dir = './audio_segments'
     srt_files = sorted(glob(f'{transcription_dir}/*.srt'))
 
+    simul_output_num = 64
+
     raw_audio_files = sorted(glob(os.path.join(audio_dir, '*.webm')))
 
     for srt_file in srt_files:
@@ -49,11 +51,20 @@ if __name__ == "__main__":
         times = read_srt_file(srt_file)
 
         print(f"Processing {audio_file}")
-        for s, e in tqdm(times):
-            # print(' '.join(['ffmpeg', f'-i "{audio_file}"', f'-ss {s}', f'-to {e}', '-acodec copy', '-vcodec copy', f'-o "{segment_path}/{s} --> {e}.webm"']))
-            os.system(' '.join(['ffmpeg', f'-i "{audio_file}"', 
-                                f"-ss {s.replace(',', '.')}", f"-to {e.replace(',', '.')}", 
-                                '-acodec copy', '-vcodec copy', 
-                                f'"{segment_path}/{s} --> {e}.webm"']))
+        # for s, e in tqdm(times):
+        #     # print(' '.join(['ffmpeg', f'-i "{audio_file}"', f'-ss {s}', f'-to {e}', '-acodec copy', '-vcodec copy', f'-o "{segment_path}/{s} --> {e}.webm"']))
+        #     os.system(' '.join(['ffmpeg', f'-i "{audio_file}"', 
+        #                         f"-ss {s.replace(',', '.')}", f"-to {e.replace(',', '.')}", 
+        #                         '-acodec copy', '-vcodec copy', 
+        #                         f'"{segment_path}/{s} --> {e}.webm"']))
+
+        
+        for i in range(len(times) // simul_output_num + 1):
+            command = ['ffmpeg', f'-i "{audio_file}"', '-acodec copy', '-vcodec copy']
+            for s, e in tqdm(times[simul_output_num*i:min(simul_output_num*(i+1), len(times))]):
+                command.extend([f"-ss {s.replace(',', '.')}", f"-to {e.replace(',', '.')}", f'"{segment_path}/{s} --> {e}.webm"'])
+            command = ' '.join(command)
+            os.system(command)
+
 
     # return
