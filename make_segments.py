@@ -20,7 +20,8 @@ def read_srt_file(file):
 if __name__ == "__main__":
 
     audio_dir = './raw_audio'
-    transcription_dir = './transcripts'
+    # transcription_dir = './transcripts'
+    transcription_dir = './filtered_transcripts'
     segment_dir = './audio_segments'
     srt_files = sorted(glob(f'{transcription_dir}/*.srt'))
 
