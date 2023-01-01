@@ -1,4 +1,5 @@
 import os
+import re
 from glob import glob
 
 from tqdm.auto import tqdm
@@ -16,6 +17,9 @@ def read_srt_file(file):
 
     return times
 
+def get_youtube_vid(file_name):
+	vid = re.search(r'\[.{11}\]', file_name)[0].strip('[]')
+	return vid
 
 if __name__ == "__main__":
 
@@ -25,8 +29,14 @@ if __name__ == "__main__":
     segment_dir = './audio_segments'
     srt_files = sorted(glob(f'{transcription_dir}/*.srt'))
 
+    raw_audio_files = sorted(glob(os.path.join(audio_dir, '*.webm')))
+
     for srt_file in srt_files:
-        audio_file = srt_file.replace(transcription_dir, audio_dir).rstrip('.srt')
+        # audio_file = srt_file.replace(transcription_dir, audio_dir).rstrip('.srt')
+        vid = get_youtube_vid(srt_file)
+        for raw_audio_file in raw_audio_files:
+            if vid in raw_audio_file:
+                audio_file = raw_audio_file
 
         assert os.path.isfile(audio_file), f"{audio_file} does not exist"
 
