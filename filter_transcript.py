@@ -58,7 +58,8 @@ def length_filtered(dur, jamo):
     jamo_high = 138.7 
     dur_high = 11.8347000 
     r_high = 20.91667
-    r_low = 2.867143
+    # r_low = 2.867143
+    r_low = 7.085238
 
     dur_pass = dur < dur_high and dur > 0 
     jamo_pass = jamo < jamo_high and jamo > 0

@@ -74,7 +74,8 @@ if __name__ == "__main__":
     # plt.show()
 
     upper_percentage = 0.99
-    lower_percentage = 0.15
+    # lower_percentage = 0.25
+    lower_percentage = 0.45
 
     total_r = [r for r in total_r if r < 30]
     fig, axes = plt.subplots(2, 1, sharex=True, figsize=(12, 6))
