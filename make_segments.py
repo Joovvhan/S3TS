@@ -42,21 +42,30 @@ if __name__ == "__main__":
 
         assert os.path.isfile(audio_file), f"{audio_file} does not exist"
 
-        segment_path = os.path.join(segment_dir, os.path.basename(audio_file)).rstrip('.webm')
-        
-        assert not os.path.isdir(segment_path), f'{segment_path} already exists'
+        # segment_path = os.path.join(segment_dir, os.path.basename(audio_file)).rstrip('.webm')
+        code = re.search('\[[\w-]{11}\]', os.path.basename(audio_file))[0]
+        segment_path = os.path.join(segment_dir, code)
 
-        os.makedirs(segment_path, exist_ok=True)
+        if not os.path.isdir(segment_path):
 
-        times = read_srt_file(srt_file)
+            os.makedirs(segment_path, exist_ok=True)
 
-        print(f"Processing {audio_file}")
-        for s, e in tqdm(times):
-            # print(' '.join(['ffmpeg', f'-i "{audio_file}"', f'-ss {s}', f'-to {e}', '-acodec copy', '-vcodec copy', f'-o "{segment_path}/{s} --> {e}.webm"']))
-            os.system(' '.join(['ffmpeg', f'-i "{audio_file}"', 
-                                f"-ss {s.replace(',', '.')}", f"-to {e.replace(',', '.')}", 
-                                '-acodec copy', '-vcodec copy', 
-                                f'"{segment_path}/{s} --> {e}.webm"']))
+            times = read_srt_file(srt_file)
+
+            print(f"Processing {audio_file}")
+            for s, e in tqdm(times):
+                # print(' '.join(['ffmpeg', f'-i "{audio_file}"', f'-ss {s}', f'-to {e}', '-acodec copy', '-vcodec copy', f'-o "{segment_path}/{s} --> {e}.webm"']))
+                # os.system(' '.join(['ffmpeg', f'-i "{audio_file}"', 
+                #                     f"-ss {s.replace(',', '.')}", f"-to {e.replace(',', '.')}", 
+                #                     '-acodec copy', '-vcodec copy', 
+                #                     f'"{segment_path}/{s} --> {e}.webm"']))
+                os.system(' '.join(['ffmpeg', f'-i "{audio_file}"', 
+                    f"-ss {s.replace(',', '.')}", f"-to {e.replace(',', '.')}", 
+                    f'"{segment_path}/{s} --> {e}.wav"']))
+
+        else:
+            print(f'{segment_path} already exists')
+            # assert not os.path.isdir(segment_path), f'{segment_path} already exists'
 
         
         # for i in range(len(times) // simul_output_num + 1):
